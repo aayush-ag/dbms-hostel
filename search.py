@@ -3,7 +3,7 @@ from database import get_db
 
 router = APIRouter()
 
-@router.get("/")
+@router.post("/")
 def search_records(
     student_id: int = Query(None),
     student_name: str = Query(None),
