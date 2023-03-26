@@ -25,7 +25,7 @@ def search_records(
 ):
     db = get_db()    
     cursor = db.cursor()
-    query = "SELECT * FROM Student JOIN Reservation ON Student.student_id = Reservation.student_id JOIN Room ON Reservation.room_id = Room.room_id JOIN Hostel ON Room.hostel_id = Hostel.hostel_id WHERE "
+    query = "SELECT DISTINCT Student.student_id, Student.student_name, Room.room_number, Hostel.hostel_name FROM Student JOIN Reservation ON Student.student_id = Reservation.student_id JOIN Room ON Reservation.room_id = Room.room_id JOIN Hostel ON Room.hostel_id = Hostel.hostel_id WHERE "
     conditions = []
     if student_id is not None:
         conditions.append(f"Student.student_id = {student_id}")
