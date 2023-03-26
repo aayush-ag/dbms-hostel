@@ -14,4 +14,5 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 EXPOSE 8000
 
 # Run app.py when the container launches
-CMD ["python", "-m", "uvicorn", "run:app", "--host", "0.0.0.0" "--port", "8000", "--workers", "4"]
+CMD ["python", "-m", "uvicorn", "run:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
