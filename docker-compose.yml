@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  app:
+    build: .
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: db
+    ports:
+      - "8000:8000"
+
   db:
     image: mysql:latest
     restart: always
@@ -18,3 +28,4 @@ services:
       PMA_PASSWORD: root
     ports:
       - "8080:80"
+
