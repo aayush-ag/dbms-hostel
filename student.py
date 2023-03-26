@@ -21,7 +21,7 @@ class StudentUpdateRequest(BaseModel):
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("/create")
 async def create_student(student: Student = Body(...)):
     db = get_db()
     cursor = db.cursor()
@@ -32,9 +32,10 @@ async def create_student(student: Student = Body(...)):
     cursor.close()
     return {"message": f"Student with ID {student.student_id} created successfully"}
 
-@router.get("/{student_id}")
+@router.post("/{student_id}")
 async def get_students(
-    student_id: int = Query(None),
+    student_id: int,
+     # = Query(None),
     student_name: str = Query(None),
     student_address: str = Query(None),
     student_phone: str = Query(None),
