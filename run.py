@@ -1,19 +1,16 @@
-import mysql.connector
 from fastapi import FastAPI
-
-# Replace the placeholders with your actual database credentials
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database="db"
-)
+from .hostel import router as hostel_router
+from .student import router as student_router
+from .reservation import router as reservation_router
+from .room import router as room_router
+from .search import router as search_router
 
 app = FastAPI()
 
-@app.post("/get/studentid")
-def get_users():
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM Student JOIN Reservation ON Student.student_id = Reservation.student_id JOIN Room ON Reservation.room_id = Room.room_id JOIN Hostel ON Room.hostel_id = Hostel.hostel_id WHERE Student.student_id = %s;", studentid)
-    users = cursor.fetchall()
-    return {"users": users}
+app.include_router(hostel_router, prefix="/hostels")
+app.include_router(student_router, prefix="/student")
+app.include_router(reservation_router, prefix="/reservation")
+app.include_router(room_router, prefix="/room")
+app.include_router(search_router, prefix="/search")
+
+
