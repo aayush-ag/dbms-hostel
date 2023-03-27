@@ -9,7 +9,7 @@ CREATE TABLE Student (
 );
 
 CREATE TABLE Hostel (
-   hostel_id INT PRIMARY KEY,
+   hostel_id INT PRIMARY KEY AUTO_INCREMENT,
    hostel_name VARCHAR(50) NOT NULL,
    hostel_address VARCHAR(100) NOT NULL,
    hostel_phone VARCHAR(20) NOT NULL

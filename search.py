@@ -64,6 +64,14 @@ def search_records(
     
     query += " AND ".join(conditions)
     cursor.execute(query)
-    records = cursor.fetchall()
+    rows = cursor.fetchall()
     cursor.close()
+
+    columns = [desc[0] for desc in cursor.description]
+    records = []
+    for row in rows:
+        record = {}
+        for i, column in enumerate(columns):
+            record[column] = row[i]
+        records.append(record)
     return {"records": records}

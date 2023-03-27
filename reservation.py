@@ -1,6 +1,7 @@
 from database import get_db
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel
+from typing import Dict
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ class Reservation(BaseModel):
     room_id: int
 
 
-@router.post("/")
+@router.post("/create")
 async def create_reservation(reservation: Reservation = Body(...)):
     db = get_db()
     cursor = db.cursor()
@@ -23,7 +24,7 @@ async def create_reservation(reservation: Reservation = Body(...)):
     return {"message": "Reservation created successfully."}
 
 
-@router.get("/{reservation_id}")
+@router.post("/{reservation_id}")
 async def get_reservation(reservation_id: int):
     db = get_db()
     cursor = db.cursor()
@@ -31,9 +32,12 @@ async def get_reservation(reservation_id: int):
     values = (reservation_id,)
     cursor.execute(query, values)
     reservation = cursor.fetchone()
+    cursor.close()
     if not reservation:
         return {"error": "Reservation not found."}
-    return {"reservation": reservation}
+    columns = [col[0] for col in cursor.description]
+    reservation_dict = dict(zip(columns, reservation))
+    return {"reservation": reservation_dict}
 
 
 @router.put("/{reservation_id}")
@@ -57,7 +61,7 @@ async def delete_reservation(reservation_id: int):
     db.commit()
     return {"message": "Reservation deleted successfully."}
 
-@router.get("/search")
+@router.post("/get")
 async def search_reservations(
     reservation_id: int = Query(None),
     start_date: str = Query(None),
@@ -88,5 +92,15 @@ async def search_reservations(
         return {"error": "Please provide at least one search parameter."}
     query = query[:-5]
     cursor.execute(query, tuple(values))
-    reservations = cursor.fetchall()
+    rows = cursor.fetchall()
+    cursor.close()
+    reservations = []
+    for row in rows:
+        reservation = {}
+        reservation["reservation_id"] = row[0]
+        reservation["start_date"] = row[1]
+        reservation["end_date"] = row[2]
+        reservation["student_id"] = row[3]
+        reservation["room_id"] = row[4]
+        reservations.append(reservation)
     return {"reservations": reservations}

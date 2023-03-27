@@ -11,7 +11,7 @@ class Room(BaseModel):
     hostel_id: int
 
 
-@router.post("/")
+@router.post("/create")
 async def create_room(room: Room = Body(...)):
     db = get_db()
     cursor = db.cursor()
@@ -22,8 +22,7 @@ async def create_room(room: Room = Body(...)):
     cursor.close()
     return {"message": "Room created successfully."}
 
-
-@router.get("/{room_id}")
+@router.post("/{room_id}")
 async def get_room(room_id: int):
     db = get_db()
     cursor = db.cursor()
@@ -34,7 +33,14 @@ async def get_room(room_id: int):
     if not room:
         return {"error": "Room not found."}
     cursor.close()
-    return {"room": room}
+    return {
+    "room": {
+    "id": room[0],
+    "number": room[1],
+    "capacity": room[2],
+    "hostel_id": room[3],
+    }
+    }
 
 
 @router.put("/{room_id}")
@@ -60,14 +66,18 @@ async def delete_room(room_id: int):
     cursor.close()
     return {"message": "Room deleted successfully."}
 
-@router.get("/search")
-async def search_rooms(room_number: str = Query(None),
+@router.post("/get")
+async def search_rooms(room_id: int = Query(None),
+                       room_number: str = Query(None),
                        room_capacity: int = Query(None),
                        hostel_id: int = Query(None)):
     db = get_db()
     cursor = db.cursor()
     query = "SELECT * FROM Room WHERE 1=1"
     params = []
+    if room_id:
+        query += " AND room_id = %s"
+        params.append(room_id)
     if room_number:
         query += " AND room_number = %s"
         params.append(room_number)
@@ -78,6 +88,14 @@ async def search_rooms(room_number: str = Query(None),
         query += " AND hostel_id = %s"
         params.append(hostel_id)
     cursor.execute(query, tuple(params))
-    rooms = cursor.fetchall()
-    cursor.close()    
+    rows = cursor.fetchall()
+    cursor.close()
+    rooms = []
+    for row in rows:
+        room = {}
+        room["room_id"] = row[0]
+        room["room_number"] = row[1]
+        room["room_capacity"] = row[2]
+        room["hostel_id"] = row[3]
+        rooms.append(room)
     return {"rooms": rooms}

@@ -32,10 +32,9 @@ async def create_student(student: Student = Body(...)):
     cursor.close()
     return {"message": f"Student with ID {student.student_id} created successfully"}
 
-@router.post("/{student_id}")
+@router.post("/get")
 async def get_students(
-    student_id: int,
-     # = Query(None),
+    student_id: int = Query(None),
     student_name: str = Query(None),
     student_address: str = Query(None),
     student_phone: str = Query(None),
@@ -65,8 +64,17 @@ async def get_students(
         raise HTTPException(status_code=400, detail="Please provide at least one search parameter.")
     query += " AND ".join(conditions)
     cursor.execute(query)
-    students = cursor.fetchall()
+    rows = cursor.fetchall()
     cursor.close()
+
+    columns = [desc[0] for desc in cursor.description]
+    students = []
+    for row in rows:
+        student = {}
+        for i, column in enumerate(columns):
+            student[column] = row[i]
+        students.append(student)
+
     return {"students": students}
 
 @router.put("/{student_id}")

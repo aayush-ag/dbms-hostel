@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 class HostelCreateRequest(BaseModel):
+    hostel_id: int
     hostel_name: str
     hostel_address: str
     hostel_phone: str
@@ -14,16 +15,25 @@ class HostelUpdateRequest(BaseModel):
 
 router = APIRouter()
 
-@router.get("/{hostel_id}")
+@router.post("/{hostel_id}")
 async def get_hostid(hostel_id: int):
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM Hostel WHERE hostel_id = %s;", (hostel_id,))
-    hostel = cursor.fetchone()
+    result = cursor.fetchone()
     cursor.close()
-    return {"hostel": hostel}
+    if result:
+        # get the column names
+        column_names = [d[0] for d in cursor.description]
 
-@router.get("/")
+        # create a dictionary with the column names as keys and the result as values
+        hostel = dict(zip(column_names, result))
+
+        return {"hostel": hostel}
+    else:
+        raise HTTPException(status_code=404, detail="Hostel not found")    
+
+@router.post("/get")
 async def get_hostels(page: int = 1, per_page: int = 10, sort_by: str = "hostel_name", order: str = "asc", search: str = None):
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -42,30 +52,21 @@ async def get_hostels(page: int = 1, per_page: int = 10, sort_by: str = "hostel_
     cursor.close()    
     return {"hostels": hostels, "count": count}
 
-@router.get("/count")
-async def get_hostel_count():
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT COUNT(*) FROM Hostel;")
-    count = cursor.fetchone()[0]
-    cursor.close()    
-    return {"count": count}
-
 @router.post("/create")
 async def create_hostel(request: HostelCreateRequest):
     db = get_db()
     cursor = db.cursor()
-    query = "INSERT INTO Hostel (hostel_name, hostel_address, hostel_phone) VALUES (%s, %s, %s);"
-    values = (request.hostel_name, request.hostel_address, request.hostel_phone)
+    query = "INSERT INTO Hostel (hostel_id, hostel_name, hostel_address, hostel_phone) VALUES (%s, %s, %s, %s);"
+    values = (request.hostel_id, request.hostel_name, request.hostel_address, request.hostel_phone)
     try:
         cursor.execute(query, values)
         db.commit()
-        hostel_id = cursor.lastrowid
+        status = "Done"
     except Exception as err:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {err}")
     cursor.close()    
-    return {"hostel_id": hostel_id}
+    return {"status": status}
 
 @router.put("/update/{hostel_id}")
 async def update_hostel(hostel_id: int, update_request: HostelUpdateRequest):
