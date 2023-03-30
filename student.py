@@ -32,6 +32,25 @@ async def create_student(student: Student = Body(...)):
     cursor.close()
     return {"message": f"Student with ID {student.student_id} created successfully"}
 
+@router.post("/getall")
+async def get_students(page: int = 1, per_page: int = 10, sort_by: str = "student_id", order: str = "asc", search: str = None):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    offset = (page - 1) * per_page
+    query = "SELECT * FROM Student"
+    count_query = "SELECT COUNT(*) AS count FROM Student"
+    if search:
+        query += f" WHERE student_name LIKE '%{search}%' OR student_address LIKE '%{search}%'"
+        count_query += f" WHERE student_phone LIKE '%{search}%' OR student_email LIKE '%{search}%'"
+    query += f" ORDER BY {sort_by} {order} LIMIT %s OFFSET %s;"
+    values = (per_page, offset)
+    cursor.execute(query, values)
+    hostels = cursor.fetchall()
+    cursor.execute(count_query)
+    count = cursor.fetchone()["count"]
+    cursor.close()    
+    return {"students": hostels, "count": count}
+
 @router.post("/get")
 async def get_students(
     student_id: int = Query(None),
