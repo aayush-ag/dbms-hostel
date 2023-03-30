@@ -6,6 +6,15 @@ from room import router as room_router
 from search import router as search_router
 
 app = FastAPI()
+origins = ["http://localhost:3000", "http://localhost:8081"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(hostel_router, prefix="/hostels")
 app.include_router(student_router, prefix="/student")
