@@ -4,6 +4,8 @@ from student import router as student_router
 from reservation import router as reservation_router
 from room import router as room_router
 from search import router as search_router
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 origins = ["http://localhost:3000", "http://localhost:8081"]
